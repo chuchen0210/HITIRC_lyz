@@ -17,7 +17,7 @@
 
 ## Aelos&Roban选拔任务1.1.2：编写发布者订阅者对给定图像进行处理
 
-工作包为opencv，只上传了代码以及CMakeLists.txt与package.xml配置文件
+工作包为IRC/src/opencv，只上传了代码以及CMakeLists.txt与package.xml配置文件
 
 效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/2
 
@@ -47,7 +47,7 @@ rosrun opencv img_sub_v.py
 
 ## Aelos&Roban选拔任务1.2：跑通yolo，将yolo识别到的物体在视频中的像素坐标通过ros话题发布
 
-工作包为yolo，只上传了代码以及CMakeLists.txt与package.xml配置文件
+工作包为IRC/src/yolo，只上传了代码以及CMakeLists.txt与package.xml配置文件(weights为kuavo任务模型权重)
 
 ```sh
 #终端1
@@ -98,7 +98,7 @@ https://github.com/chuchen0210/HITIRC_lyz/issues/4
 
 ## Kuavo选拨任务3.2：YOLO：使用门把手数据集进行训练并验证
 
-将学长提供的数据集与自己的数据集（手机采图并标注）一起训练，将学长数据集图片转化为视频与手机采的视频合并，进行推理验证。模型权重文件在yolo/weights文件夹下
+将学长提供的数据集与自己的数据集（手机采图并标注）一起训练，将学长数据集图片转化为视频与手机采的视频合并，进行推理验证。模型权重文件在IRC/srcyolo/weights文件夹下
 
 效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/5
 
