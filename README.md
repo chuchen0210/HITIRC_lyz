@@ -87,11 +87,58 @@ https://github.com/chuchen0210/HITIRC_lyz/issues/4
 
 ## Kuavo选拔任务2.2.2：跑通双足机器人，编写一个脚本来向话题/cmd_vel发送数据控制机器人以指定的速度移动
 
+编写cmd_vel_keyboard_controller.cpp，固定速度大小，在walk状态下，通过按键向话题/cmd_vel发送geometry_msgs::Twist消息控制双足机器人前后左右以及旋转运动
 
+```sh
+rosrun humanoid_controllers cmd_vel_keyboard_controller
+```
+
+![2025-02-07 17-38-43 的屏幕截图](/home/lyz/图片/2025-02-07 17-38-43 的屏幕截图.png)
+
+效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/8
 
 ## Kuavo选拔任务2.2.3：实现双足机器人自动切换步态的功能
 
+编写gait_change.cpp，控制机器人在stance状态下向/cmd_vel发送不为 0 的速度可以自动切换成walk状态并运动，同时发送为 0 的速度可以自动切换为stance状态并停止
 
+```cpp
+        // 根据速度发送步态命令
+        if (cmd_vel_msg.linear.x != 0 || cmd_vel_msg.linear.y != 0 || cmd_vel_msg.linear.z != 0 || cmd_vel_msg.angular.z != 0) {
+            publishGaitCommand("walk");  // 速度不为零时，发送“walk”命令
+        } else {
+            publishGaitCommand("stance");  // 速度为零时，发送“stance”命令
+        }
+```
+
+参考GaitKeyboardPublisher.cpp，通过`rosmsg show ocs2_msgs/mode_schedule`查找ocs2_msgs::mode_schedule消息类型，通过终端信息锁定mode_msg.modeSequence，mode_msg.eventTimes 与步态类型的对应关系
+
+```cpp
+// 发布步态命令
+void publishGaitCommand(const std::string& gaitCommand) {
+    ocs2_msgs::mode_schedule mode_msg;
+
+    // 根据步态命令选择 modeSequence 和 eventTimes
+    if (gaitCommand == "walk") {
+        // walk 步态的模式序列和时间点
+        mode_msg.modeSequence = {1, 3, 2, 3};  // LC, STANCE, RC, STANCE
+        mode_msg.eventTimes = {0.0, 0.45, 0.6, 1.05, 1.2};
+    } else if (gaitCommand == "stance") {
+        // stance 步态的模式序列和时间点
+        mode_msg.modeSequence = {3};  // STANCE
+        mode_msg.eventTimes = {0.0,1000.0};
+    }
+
+    // 发布步态命令
+    gaitPublisher_.publish(mode_msg);
+}
+```
+
+```sh
+#放在humanoid_controllers工作包下
+rosrun humanoid_controllers gait_change
+```
+
+效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/9
 
 ## Kuavo选拨任务3.1：跑通yolo，将yolo识别到的物体在视频中的像素坐标通过ros话题发布
 
@@ -100,8 +147,6 @@ https://github.com/chuchen0210/HITIRC_lyz/issues/4
 ## Kuavo选拨任务3.2：YOLO：使用门把手数据集进行训练并验证
 
 将学长提供的数据集与自己的数据集（手机采图并标注）一起训练，将学长数据集图片转化为视频与手机采的视频合并，进行推理验证。模型权重文件在IRC/srcyolo/weights文件夹下
-
-
 
 效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/5
 
