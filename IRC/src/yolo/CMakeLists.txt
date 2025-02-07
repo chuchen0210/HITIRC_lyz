@@ -163,6 +163,8 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/yolo_pub.py
   scripts/yolo_sub.py
+  scripts/kalman.py
+  scripts/yolo_kf_pub.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
