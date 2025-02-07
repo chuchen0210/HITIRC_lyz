@@ -152,7 +152,50 @@ rosrun humanoid_controllers gait_change
 
 ## Kuavo选拨任务3.3：YOLO：加入卡尔曼滤波，增强跟踪效果
 
-使用IRC/srcyolo/weights/best.pt模型权重，加入卡尔曼滤波效果，当yolo检测对象为空时，卡尔曼滤波的添加可使得yolo短时间内仍然保持跟踪，代码实现在IRC/src/yolo/scripts下的kalman.py与yolo_kf_pub.py中，使用cv2.circle与cv2.putText凸显效果
+使用IRC/srcyolo/weights/best.pt模型权重，加入卡尔曼滤波效果，当yolo检测对象为空时，卡尔曼滤波的添加可使得yolo短时间内仍然保持跟踪，代码实现在IRC/src/yolo/scripts下的kalman.py与yolo_kf_pub.py中
+
+下图为yolo检测为空时，有无卡尔曼滤波的结果对比：
+
+[![Image](https://private-user-images.githubusercontent.com/167320956/410901514-594151b9-0d91-4a8a-a78c-aac43bf55d55.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Mzg5Mjk4MzYsIm5iZiI6MTczODkyOTUzNiwicGF0aCI6Ii8xNjczMjA5NTYvNDEwOTAxNTE0LTU5NDE1MWI5LTBkOTEtNGE4YS1hNzhjLWFhYzQzYmY1NWQ1NS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwMjA3JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDIwN1QxMTU4NTZaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00M2IzZjVmMmRhNzgzZGM4OTk3NzJiOTY0OTQxNGQ0MDNiN2VjMDMyZGVmNGYyMTk0OTZiZWE2OTg1OTkyOWJiJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.int41_F48IYd8MCN6yKry7RTjFG3sYdgz86N6QrpAMg)](https://private-user-images.githubusercontent.com/167320956/410901514-594151b9-0d91-4a8a-a78c-aac43bf55d55.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Mzg5Mjk4MzYsIm5iZiI6MTczODkyOTUzNiwicGF0aCI6Ii8xNjczMjA5NTYvNDEwOTAxNTE0LTU5NDE1MWI5LTBkOTEtNGE4YS1hNzhjLWFhYzQzYmY1NWQ1NS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwMjA3JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDIwN1QxMTU4NTZaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00M2IzZjVmMmRhNzgzZGM4OTk3NzJiOTY0OTQxNGQ0MDNiN2VjMDMyZGVmNGYyMTk0OTZiZWE2OTg1OTkyOWJiJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.int41_F48IYd8MCN6yKry7RTjFG3sYdgz86N6QrpAMg)
+
+关键代码：
+
+```cpp
+# 运行YOLO模型进行目标检测
+results = model(frame)
+
+# 处理YOLO检测到的目标
+detection = None
+for result in results:
+    for box in result.boxes:
+        x1, y1, x2, y2 = map(int, box.xyxy[0])  # 获取边界框坐标
+        x_center = (x1 + x2) / 2.0
+        y_center = (y1 + y2) / 2.0
+        label = model.names[int(box.cls[0])]
+        
+        detection = (x_center, y_center)  # YOLO的实际检测值
+
+        # 使用卡尔曼滤波器来预测目标的中心位置
+        predicted_x, predicted_y = tracker.update(detection)
+
+        # 发送ROS话题，包含目标类别和预测位置
+        bbox_msg = f"{label},{predicted_x},{predicted_y}"
+        bbox_pub.publish(bbox_msg)
+
+# 如果YOLO丢失目标，使用预测位置
+if detection is None:
+    predicted_x, predicted_y = tracker.update(None)
+```
+
+
+使用cv2.circle与cv2.putText凸显效果                
+```cpp
+# 可视化：在图像上绘制卡尔曼预测的目标位置
+frame = results[0].plot()
+cv2.circle(frame, (predicted_x, predicted_y), 5, (0, 0, 255), -1)  # 红色：预测值
+font = cv2.FONT_HERSHEY_SIMPLEX
+cv2.putText(frame, f"Handler: ({predicted_x}, {predicted_y})", (predicted_x, predicted_y-10), font, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+```
 
 效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/7
 
