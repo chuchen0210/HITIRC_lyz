@@ -47,7 +47,7 @@ rosrun opencv img_sub_v.py
 
 ## Aelos&Roban选拔任务1.2：跑通yolo，将yolo识别到的物体在视频中的像素坐标通过ros话题发布
 
-工作包为IRC/src/yolo，只上传了代码以及CMakeLists.txt与package.xml配置文件(weights为kuavo任务模型权重)
+跑通yolov8，完成yolo配置，数据集标注，数据集划分（训练集，验证集8：2随机分配）模型训练，模型推理等工作，辅助工具在IRC/src/yolo/tools文件夹，包含图片与视频互相转化，数据集划分等代码，工作包为IRC/src/yolo，只上传了代码以及CMakeLists.txt与package.xml配置文件(weights为kuavo任务模型权重)
 
 ```sh
 #终端1
@@ -79,10 +79,11 @@ https://github.com/chuchen0210/HITIRC_lyz/issues/4
 
 **参数含义：**
 
- X：机器人沿地图向前方向运动的位移（与机器人朝向无关，“向前”指地图的方向），绝对值最大为10
- Y：机器人沿地图向左方向运动的位移（与机器人朝向无关，“向左”指地图的方向），绝对值最大为10
- Z：机器人沿竖直方向向上运动的位移，绝对值最大为0.2
- Yaw (deg)：机器人沿自身Z轴逆时针旋转的角度（角度制），绝对值最大为360
+-  X：机器人沿地图向前方向运动的位移（与机器人朝向无关，“向前”指地图的方向），绝对值最大为10
+
+-  Y：机器人沿地图向左方向运动的位移（与机器人朝向无关，“向左”指地图的方向），绝对值最大为10
+-  Z：机器人沿竖直方向向上运动的位移，绝对值最大为0.2
+-  Yaw (deg)：机器人沿自身Z轴逆时针旋转的角度（角度制），绝对值最大为360
 
 ## Kuavo选拔任务2.2.2：跑通双足机器人，编写一个脚本来向话题/cmd_vel发送数据控制机器人以指定的速度移动
 
@@ -100,6 +101,13 @@ https://github.com/chuchen0210/HITIRC_lyz/issues/4
 
 将学长提供的数据集与自己的数据集（手机采图并标注）一起训练，将学长数据集图片转化为视频与手机采的视频合并，进行推理验证。模型权重文件在IRC/srcyolo/weights文件夹下
 
+
+
 效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/5
 
 ## Kuavo选拨任务3.3：YOLO：加入卡尔曼滤波，增强跟踪效果
+
+使用IRC/srcyolo/weights/best.pt模型权重，加入卡尔曼滤波效果，当yolo检测对象为空时，卡尔曼滤波的添加可使得yolo短时间内仍然保持跟踪，代码实现在IRC/src/yolo/scripts下的kalman.py与yolo_kf_pub.py中，使用cv2.circle与cv2.putText凸显效果
+
+效果可见：https://github.com/chuchen0210/HITIRC_lyz/issues/7
+
