@@ -69,7 +69,7 @@ https://github.com/chuchen0210/HITIRC_lyz/issues/4
 
 ### 1.特征提取与匹配
 
-ORB-SLAM2使用**ORB（Oriented FAST and Rotated BRIEF）**特征来进行图像的特征提取和匹配。ORB特征由两部分组成：
+ORB-SLAM2使用ORB（Oriented FAST and Rotated BRIEF）特征来进行图像的特征提取和匹配。ORB特征由两部分组成：
 
 **FAST角点检测**：用来检测图像中的兴趣点，这些点对尺度和旋转具有不变性。  
 
