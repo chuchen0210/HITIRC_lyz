@@ -1,0 +1,58 @@
+1.obs:
+    --current_sim_step
+    --agent
+        --joint_state
+            --arms_positions
+            --arms_velocities
+            --arms_applied_effort
+            --legs_positions
+            --legs_velocities
+            --legs_applied_effort
+        --body_state
+            --world_pos
+            --world_orient
+            --linear_velocities
+            --angular_velocities
+        --stiffness
+        --dampings
+        --start_pos
+        --start_orient
+    --goal 字符串形式：Please put the xx on the xx
+    --pick bool返回值，如果抓取成功返回True
+    
+2.get_cmd(self, obs, vx, vy, theta, state) 函数参数：  
+    --obs 传入当前状态
+    --vx m/s 如果vx>0，则机器人会向前移动；如果vx<0，则机器人会向后移动
+    --vy m/s 如果vy>0，则机器人会向左移动；如果vy<0，则机器人会向右移动
+    --theta rad/s 如果theta>0，则机器人会逆时针旋转；如果theta<0，则机器人会顺时针旋转
+    --state
+        --0 or False：步态，上楼梯也行
+        --1：原地静止不动的状态（即使速度或者角速度不为0，也会原地静止）
+        --2，3，4...貌似只有在任务3需要跳跃障碍的时候才会执行跳跃动作，其他情况下也和0状态的步态一样
+
+    速度对应leg，所以leg只需joint_efforts = self.ctrl_client_.get_cmd(obs, 0.12, 0, 0.2, False)
+
+4.action:
+    --arms
+        'l_shoulder_y', 'l_shoulder_z', 'l_shoulder_x', 'l_elbow' 左肩关节Y方向、左肩关节Z方向、左肩关节X方向、左肘关节
+        'r_shoulder_y', 'r_shoulder_z', 'r_shoulder_x', 'r_elbow' 右肩关节Y方向、右肩关节Z方向、右肩关节X方向、右肘关节
+        --ctrl_mode: 都是给position模式，即控制手臂姿势
+        --joint_values：
+            --l_shoulder_y:传入弧度，如果>0，则向后举起；如果<0，则向前举起（某二战敬礼姿势）
+            --l_shoulder_z:貌似沿着肩关节旋转了
+            --l_shoulder_x:如果>0，手臂向左举起；如果<0，没反应（被身体挡住了）
+            --l_elbow:
+            --右手臂动作同理，方向可以镜像
+        --stiffness：刚度，  高刚度：关节在受到外力时不容易变形；低刚度：关节在受到外力时容易变形
+        --dampings：阻尼，   高阻尼：关节在运动时速度下降得很快，振动较小；低阻尼：关节在运动时速度下降得较慢，容易产生振荡
+        如果stiffness和dampings不给并且执行抓去指令的话，可能会出现手臂和物体成为一体，使机器人本身容易振荡
+    --legs
+        --ctrl_mode: 貌似都只用到了effort模式，并使用joint_efforts["mode"]作为默认参数
+        --joint_values：默认参数：joint_efforts["effort"]
+        --stiffness：默认不给[]
+        --dampings：默认不给[]
+    --pick：None/left_hand/right_hand 采用左手抓去或者右手抓去或者不抓去
+    --release: 是否释放
+
+3.注意：
+    --在self.ctrl_client_.get_cmd( obs, 0, 0, 0.3, False)传入参数的时候obs前面需要加一个空格，不然就会有莫名其妙的错误（好像是对的，也好像不对）
